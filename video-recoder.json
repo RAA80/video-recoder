@@ -1,0 +1,14 @@
+[
+    {
+        "NAME": "Video 1",
+        "URL" : "rtsp://192.168.1.108:554/cam/realmonitor?channel=1&subtype=00&authbasic=YWRtaW46YWRtaW4="
+    },
+    {
+        "NAME": "Video 2",
+        "URL" : "http://root:12345678@192.168.202.23:80/mjpg/video.mjpg"
+    },
+    {
+        "NAME": "Video 3",
+        "URL" : "/home/user/test.mp4"
+    }
+]
