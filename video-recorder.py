@@ -150,5 +150,5 @@ class Recoder(object):
 
 
 if __name__ == '__main__':
-    rec_params = json.load(open('video-recoder.json'))
+    rec_params = json.load(open('video-recorder.json'))
     Recoder(rec_params)
