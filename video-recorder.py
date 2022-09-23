@@ -3,14 +3,14 @@
 
 import logging
 import threading
-import cv2
 import json
 import datetime
+import cv2
 
 try:
     import tkinter as Tkinter       # for Python3
     from tkinter import ttk
-except:
+except ImportError:
     import Tkinter                  # for Python2
     import ttk
 
@@ -18,10 +18,10 @@ except:
 logging.basicConfig(level=logging.INFO)
 
 
-class Recoder(object):
+class Recorder(object):
     def __init__(self, params):
         self.root = Tkinter.Tk()
-        self.root.title("Video Recoder GUI")
+        self.root.title("Video Recorder GUI")
         self.root.protocol('WM_DELETE_WINDOW', self.exit)
 
         self.array = {}
@@ -33,23 +33,25 @@ class Recoder(object):
             frame = ttk.LabelFrame(self.root, text=name, labelanchor='n')
             frame.pack(side="left", fill="both", expand=True)
 
-            buttonShow = ttk.Button(frame, text="Show Video")
-            buttonShow.pack(side="top", fill="x", pady=2, padx=2)
+            btn_show = ttk.Button(frame, text="Show Video")
+            btn_show.pack(side="top", fill="x", pady=2, padx=2)
 
-            buttonRec = ttk.Button(frame, text="Start Record", state="disabled")
-            buttonRec.pack(side="top", fill="x", pady=2, padx=2)
+            btn_rec = ttk.Button(frame, text="Start Record", state="disabled")
+            btn_rec.pack(side="top", fill="x", pady=2, padx=2)
 
-            self.array[buttonShow] = {'NAME': name, 'EXIT': False, 'PID': None, 'RECORD': False, 'TOGGLE': False, 'URL': url, 'DEPEND': buttonRec}
-            self.array[buttonRec]  = {'NAME': name, 'EXIT': False, 'PID': None, 'RECORD': False, 'TOGGLE': False, 'URL': url, 'DEPEND': buttonShow}
+            self.array[btn_show] = {'NAME': name, 'EXIT': False, 'PID': None, 'RECORD': False, 'TOGGLE': False, 'URL': url, 'DEPEND': btn_rec}
+            self.array[btn_rec]  = {'NAME': name, 'EXIT': False, 'PID': None, 'RECORD': False, 'TOGGLE': False, 'URL': url, 'DEPEND': btn_show}
 
-            buttonShow.config(command=lambda button=buttonShow: self.show(button))
-            buttonRec.config(command=lambda button=buttonRec: self.record(button))
+            btn_show.config(command=lambda button=btn_show: self.show(button))
+            btn_rec.config(command=lambda button=btn_rec: self.record(button))
 
         self.root.mainloop()
 
     def show(self, button):
+        name = self.array[button]['NAME']
+
         if self.array[button]['TOGGLE']:
-            logging.info(self.array[button]['NAME'] + "-> Hide video")
+            logging.info("%s-> Hide video", name)
 
             button.config(text="Show Video")
 
@@ -59,7 +61,7 @@ class Recoder(object):
             self.array[button]['PID'].join()
             self.array[button]['PID'] = None
         else:
-            logging.info(self.array[button]['NAME'] + "-> Show video")
+            logging.info("%s-> Show video", name)
 
             button.config(text="Hide Video")
 
@@ -71,8 +73,10 @@ class Recoder(object):
             self.array[button]['PID'].start()
 
     def record(self, button):
+        name = self.array[button]['NAME']
+
         if self.array[button]['RECORD']:
-            logging.info(self.array[button]['NAME'] + "-> Stop recording")
+            logging.info("%s-> Stop recording", name)
 
             button.config(text="Start Record")
 
@@ -81,7 +85,7 @@ class Recoder(object):
             tmp = self.array[button]['DEPEND']
             self.array[tmp]['RECORD'] = False
         else:
-            logging.info(self.array[button]['NAME'] + "-> Start recording")
+            logging.info("%s-> Start recording", name)
 
             button.config(text="Stop Record")
 
@@ -96,7 +100,7 @@ class Recoder(object):
         capture = cv2.VideoCapture(self.array[button]['URL'])
 
         if capture.isOpened():
-            logging.info("%s-> Capture opened successfully" % (name))
+            logging.info("%s-> Capture opened successfully", name)
 
             if int(cv2.__version__[0]) > 2:
                 height = capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -108,11 +112,11 @@ class Recoder(object):
                 width  = capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
                 fps    = capture.get(cv2.cv.CV_CAP_PROP_FPS)
                 fourcc = cv2.cv.CV_FOURCC('M','J','P','G')
-            logging.info("%s-> Height=%i Width=%i FPS=%.1f" % (name, height, width, fps))
+            logging.info("%s-> Height=%i Width=%i FPS=%.1f", name, height, width, fps)
 
             new_file = True
 
-            while(capture.isOpened()):
+            while capture.isOpened():
                 ret, frame = capture.read()
                 if ret:
                     cv2.imshow(name, frame)
@@ -122,25 +126,25 @@ class Recoder(object):
                             filename = datetime.datetime.strftime(datetime.datetime.now(), name + " %Y-%m-%d %H-%M-%S") + ".avi"
                             out = cv2.VideoWriter(filename, fourcc, 25, (int(width), int(height)))
                             if out.isOpened():
-                                logging.info(name + "-> Writer opened successfully")
+                                logging.info("%s-> Writer opened successfully", name)
                                 new_file = False
                             else:
-                                logging.error(name + "-> Writer not opened")
+                                logging.error("%s-> Writer not opened", name)
                         else:
                             out.write(frame)
                     else:
                         new_file = True
                 else:
-                    logging.error(name + "-> Frame not grabbed")
+                    logging.error("%s-> Frame not grabbed", name)
 
                 cv2.waitKey(1)
 
                 if self.array[button]['EXIT']:
                     break
         else:
-            logging.error(name + "-> Capture not opened")
+            logging.error("%s-> Capture not opened", name)
 
-        logging.info(name + "-> Release video")
+        logging.info("%s-> Release video", name)
         capture.release()
         cv2.destroyWindow(name)
 
@@ -151,4 +155,4 @@ class Recoder(object):
 
 if __name__ == '__main__':
     rec_params = json.load(open('video-recorder.json'))
-    Recoder(rec_params)
+    Recorder(rec_params)
