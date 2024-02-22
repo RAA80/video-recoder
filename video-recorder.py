@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import tkinter as tk
 from datetime import datetime
 from threading import Thread
@@ -10,6 +11,7 @@ from tkinter import ttk
 import cv2
 
 logging.basicConfig(level=logging.INFO)
+path = os.path.dirname(__file__) + os.sep
 
 
 class Recorder:
@@ -151,6 +153,6 @@ class Recorder:
 
 
 if __name__ == "__main__":
-    with open("video-recorder.json", encoding="utf-8") as hfile:
+    with open(f"{path}video-recorder.json", encoding="utf-8") as hfile:
         rec_params = json.load(hfile)
         Recorder(rec_params)
